@@ -9,7 +9,9 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-build/
-dist/
+# Anchored to repo root so they only match top-level build output — NOT the
+# source package src/runscribe/build/ (an unanchored "build/" would ignore it).
+/build/
+/dist/
 .venv/
 venv/
