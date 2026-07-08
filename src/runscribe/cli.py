@@ -14,7 +14,7 @@ import typer
 from rich.console import Console
 
 from . import __version__
-from .build import build_runbook, render_markdown
+from .build import build_runbook, render_html, render_markdown
 from .record import Capturer, PersistentShellError, make_capturer
 from .redact import RedactConfigError, load_redactor
 from .run import Decision, ParsedStep, find_placeholders, parse_runbook, run_runbook
@@ -183,8 +183,14 @@ def build(
         "--redact-config",
         help="Extra redaction rules (default: .runscribe/redact.toml if present).",
     ),
+    fmt: str = typer.Option(
+        "md", "--format", "-f", help="Output format: 'md' (Markdown) or 'html'."
+    ),
 ) -> None:
-    """Turn a recorded session into a clean Markdown runbook."""
+    """Turn a recorded session into a clean Markdown (or HTML) runbook."""
+    if fmt not in ("md", "html"):
+        _err.print(f"[red]X[/red] --format must be 'md' or 'html', got {fmt!r}")
+        raise typer.Exit(2)
     session_path = _resolve_session(session, last)
 
     steps = read_session(session_path)
@@ -207,12 +213,12 @@ def build(
         drop_noise=not keep_noise,
         redactor=redactor,
     )
-    markdown = render_markdown(runbook)
+    rendered = render_html(runbook) if fmt == "html" else render_markdown(runbook)
 
     if out is None:
-        print(markdown)  # plain print: the markdown must not be parsed as rich markup
+        print(rendered)  # plain print: rendered output must not be parsed as rich markup
     else:
-        out.write_text(markdown, encoding="utf-8")
+        out.write_text(rendered, encoding="utf-8")
         note = f" ({runbook.redacted_count} redacted)" if runbook.redacted_count else ""
         _console.print(
             f"[bold]done[/bold] {runbook.command_count} command(s){note} -> [cyan]{out}[/cyan]"
