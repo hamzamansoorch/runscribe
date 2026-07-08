@@ -1,0 +1,15 @@
+# runscribe: recorded sessions may contain sensitive command output — never commit them
+.runscribe/
+*.runscribe.jsonl
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+.venv/
+venv/
