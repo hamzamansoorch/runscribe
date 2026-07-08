@@ -64,9 +64,25 @@ git checkout v1.4.2
 ```
 ```
 
+**3. Run** — replay a runbook step by step, later or on another machine:
+
+```bash
+runscribe run deploy.md
+```
+
+```
+running 2 step(s) from deploy.md
+
+## Deploy the API
+$ git checkout v1.4.2
+  run this step? [Y]es / [s]kip / [q]uit:
+```
+
+Each command is shown before it runs; you confirm (or `--yes` to run unattended). `{{PLACEHOLDER}}` tokens are filled in — prompted, or passed with `--set NAME=value`. A failing step halts the run (unless `--keep-going`), and on POSIX state persists across steps just like recording.
+
 ## How it works
 
-`runscribe record` records each command, its working directory, exit code, timing, and (bounded) output to an append-only JSONL file under `.runscribe/sessions/`. On POSIX it feeds commands to a single long-lived shell, so `cd`, `export`, and shell variables **persist across steps** just like a real session; on Windows (or with `--subprocess`) it runs each command independently. `runscribe build` redacts secrets, drops navigation noise (`ls`, `pwd`, …), collapses immediately-repeated commands, and renders a Markdown runbook. Command steps are tagged with `<!-- runscribe: id=N -->` so a future `runscribe run` can re-execute exactly the runnable steps.
+`runscribe record` records each command, its working directory, exit code, timing, and (bounded) output to an append-only JSONL file under `.runscribe/sessions/`. On POSIX it feeds commands to a single long-lived shell, so `cd`, `export`, and shell variables **persist across steps** just like a real session; on Windows (or with `--subprocess`) it runs each command independently. `runscribe build` redacts secrets, drops navigation noise (`ls`, `pwd`, …), collapses immediately-repeated commands, and renders a Markdown runbook. Command steps are tagged with `<!-- runscribe: id=N -->` so `runscribe run` re-executes exactly those runnable steps — never prose or example-output blocks.
 
 ### Custom redaction rules
 
@@ -86,8 +102,8 @@ literals = ["project-bluebird", "10.0.0.42"]
 
 - **M1:** `record` + `build`. Per-command capture, secret redaction, Markdown output. ✅
 - **M2:** persistent-shell capture (cd/export/vars persist), user-extensible `.runscribe/redact.toml`, smarter noise filtering. ✅
-- **M3:** `runscribe run` — step-by-step execution with confirmations and `{{placeholders}}`.
-- **M4:** full interactive-TUI (PTY) capture incl. native Windows, standalone `.exe`/binary (no Python needed), HTML export.
+- **M3:** `runscribe run` — step-by-step execution with confirmations, `{{placeholders}}`, and halt-on-failure. ✅
+- **M4:** HTML export, standalone `.exe`/binary (no Python needed), and full interactive-TUI (PTY) capture including native Windows. *(in progress)*
 
 ## Security & limits
 
