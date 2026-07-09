@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "runscribe"
-version = "0.1.1"
+version = "0.1.2"
 description = "Turn what you just did in the terminal into a clean, re-runnable runbook — offline, no AI, your history never leaves your machine."
 readme = "README.md"
 requires-python = ">=3.10"
