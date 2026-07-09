@@ -16,6 +16,7 @@ factory can fall back cleanly.
 from __future__ import annotations
 
 import os
+import re
 import select
 import subprocess
 import sys
@@ -29,6 +30,15 @@ from .persistent_capturer import PersistentShellError, default_posix_shell
 _POSIX = sys.platform != "win32"
 if _POSIX:
     import termios
+
+# On a PTY the shell runs interactively, so readline emits terminal control
+# sequences (bracketed-paste toggles \x1b[?2004h/l, colors, cursor moves, window
+# titles). Strip them so captured output is clean text, not raw escapes.
+_ANSI_RE = re.compile(
+    r"\x1b\[[0-9;?]*[ -/]*[@-~]"  # CSI: ESC [ ... final byte
+    r"|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)"  # OSC: ESC ] ... BEL or ST
+    r"|\x1b[@-Z\\-_]"  # other two-character escapes
+)
 
 _SENTINEL = "__RUNSCRIBE_PTY_END_4b8e2d__"
 _STARTUP_PROBE_TIMEOUT_S = 5.0
@@ -118,8 +128,9 @@ class PtyCapturer(Capturer):
         )
 
     def _split_on_sentinel(self, buffer: str) -> tuple[str, int]:
-        # The PTY converts \n to \r\n on output; normalise before parsing.
-        lines = buffer.replace("\r\n", "\n").split("\n")
+        # Strip terminal control sequences, then normalise \r\n before parsing.
+        clean = _ANSI_RE.sub("", buffer).replace("\r\n", "\n")
+        lines = clean.split("\n")
         output_lines: list[str] = []
         exit_code = 0
         for line in lines:
