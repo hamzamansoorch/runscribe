@@ -1,0 +1,53 @@
+name: Release
+
+# Build standalone binaries (no Python needed) and attach them to the GitHub
+# Release when a version tag is pushed, e.g. `git tag v0.1.2 && git push --tags`.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  binaries:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            asset: runscribe-linux-x86_64
+          - os: macos-latest
+            asset: runscribe-macos-arm64
+          - os: windows-latest
+            asset: runscribe-windows-x86_64.exe
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install project + PyInstaller
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install . pyinstaller
+      - name: Build binary
+        run: pyinstaller --onefile --name runscribe packaging/runscribe_entry.py
+      - name: Smoke-test the binary (non-Windows)
+        if: runner.os != 'Windows'
+        run: ./dist/runscribe --version
+      - name: Smoke-test the binary (Windows)
+        if: runner.os == 'Windows'
+        run: ./dist/runscribe.exe --version
+      - name: Stage asset with a stable name
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            cp dist/runscribe.exe "${{ matrix.asset }}"
+          else
+            cp dist/runscribe "${{ matrix.asset }}"
+          fi
+      - name: Attach to the release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.asset }}

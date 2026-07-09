@@ -58,6 +58,9 @@ select = ["E", "F", "I", "UP", "B"]
 # Analyse against 3.11 so stdlib `tomllib` resolves; runtime still supports 3.10
 # via the tomli backport. CI exercises 3.10 at test time.
 python_version = "3.11"
+# Analyse for POSIX so the Unix-only pty/termios imports resolve; runtime guards
+# (sys.platform / _POSIX) keep the Windows path safe. CI runs the real matrix.
+platform = "linux"
 strict = true
 files = ["src/runscribe"]
 

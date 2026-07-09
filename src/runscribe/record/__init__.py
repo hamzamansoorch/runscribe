@@ -10,6 +10,7 @@ from .persistent_capturer import (
     PersistentShellError,
     default_posix_shell,
 )
+from .pty_capturer import PtyCapturer, pty_supported
 from .subprocess_capturer import SubprocessCapturer
 
 __all__ = [
@@ -17,20 +18,25 @@ __all__ = [
     "CommandResult",
     "PersistentShellCapturer",
     "PersistentShellError",
+    "PtyCapturer",
     "SubprocessCapturer",
     "make_capturer",
+    "pty_supported",
 ]
 
 
-def make_capturer(*, persistent: bool | None = None) -> Capturer:
-    """Pick the best capturer for this platform.
+def make_capturer(*, persistent: bool | None = None, pty: bool = False) -> Capturer:
+    """Pick a capturer.
 
-    ``persistent`` forces the choice: ``True`` demands the persistent POSIX
-    shell (raising if unavailable), ``False`` forces the per-command subprocess
-    capturer. ``None`` (default) uses the persistent shell when a POSIX shell is
-    available and we're not on Windows, else falls back to the subprocess
-    capturer. State (``cd``/``export``/variables) persists only with the former.
+    - ``pty=True``: highest-fidelity PTY capturer (POSIX only; raises if
+      unavailable so the caller can fall back).
+    - ``persistent=True``: the persistent POSIX shell (state carries across
+      steps); ``False``: the per-command subprocess capturer.
+    - ``persistent=None`` (default): persistent shell on POSIX when a shell is
+      available, else the subprocess capturer.
     """
+    if pty:
+        return PtyCapturer()
     if persistent is False:
         return SubprocessCapturer()
     if persistent is True:

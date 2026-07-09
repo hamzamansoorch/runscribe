@@ -72,20 +72,27 @@ def record(
         "--persistent",
         help="Force one long-lived POSIX shell so cd/export/vars persist (needs bash/sh).",
     ),
+    use_pty: bool = typer.Option(
+        False,
+        "--pty",
+        help="Capture via a real PTY (POSIX only): colored output and TUIs behave normally.",
+    ),
 ) -> None:
     """Start recording. Type commands normally.
 
     Prefix a line with '# ' to add a note, or '## ' to start a new section.
     Type 'exit' (or press Ctrl-D) to finish.
     """
-    if subprocess_only and persistent:
-        _err.print("[red]X[/red] --subprocess and --persistent are mutually exclusive")
+    if sum((subprocess_only, persistent, use_pty)) > 1:
+        _err.print("[red]X[/red] choose at most one of --subprocess / --persistent / --pty")
         raise typer.Exit(2)
 
     out_dir.mkdir(parents=True, exist_ok=True)
     session_path = out_dir / f"{datetime.now():%Y%m%d-%H%M%S}.jsonl"
 
-    capturer = _make_capturer(subprocess_only=subprocess_only, persistent=persistent)
+    capturer = _make_capturer(
+        subprocess_only=subprocess_only, persistent=persistent, use_pty=use_pty
+    )
 
     _console.print("[bold green]* recording[/bold green] - "
                    "commands run for real; [cyan]# note[/cyan], [cyan]## section[/cyan], "
@@ -133,9 +140,16 @@ def record(
     _console.print(f"[dim]next: runscribe build {session_path} -o runbook.md[/dim]")
 
 
-def _make_capturer(*, subprocess_only: bool, persistent: bool) -> Capturer:
+def _make_capturer(
+    *, subprocess_only: bool, persistent: bool, use_pty: bool = False
+) -> Capturer:
     if subprocess_only:
         return make_capturer(persistent=False)
+    if use_pty:
+        try:
+            return make_capturer(pty=True)
+        except PersistentShellError:
+            _err.print("[yellow]![/yellow] PTY capture unavailable; falling back.")
     try:
         return make_capturer(persistent=True if persistent else None)
     except PersistentShellError:

@@ -13,5 +13,6 @@ __pycache__/
 # source package src/runscribe/build/ (an unanchored "build/" would ignore it).
 /build/
 /dist/
+*.spec
 .venv/
 venv/

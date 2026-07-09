@@ -17,6 +17,8 @@ Every team has tribal knowledge stuck in one person's head: how to deploy, how t
 pip install runscribe      # the command is `runscribe`
 ```
 
+Or grab a **standalone binary** (no Python required) from the [Releases](https://github.com/hamzamansoorch/runscribe/releases) page — one file each for Linux, macOS, and Windows.
+
 ## Use
 
 **1. Record** — run your commands as normal:
@@ -82,7 +84,7 @@ Each command is shown before it runs; you confirm (or `--yes` to run unattended)
 
 ## How it works
 
-`runscribe record` records each command, its working directory, exit code, timing, and (bounded) output to an append-only JSONL file under `.runscribe/sessions/`. On POSIX it feeds commands to a single long-lived shell, so `cd`, `export`, and shell variables **persist across steps** just like a real session; on Windows (or with `--subprocess`) it runs each command independently. `runscribe build` redacts secrets, drops navigation noise (`ls`, `pwd`, …), collapses immediately-repeated commands, and renders a Markdown runbook. Command steps are tagged with `<!-- runscribe: id=N -->` so `runscribe run` re-executes exactly those runnable steps — never prose or example-output blocks.
+`runscribe record` records each command, its working directory, exit code, timing, and (bounded) output to an append-only JSONL file under `.runscribe/sessions/`. On POSIX it feeds commands to a single long-lived shell, so `cd`, `export`, and shell variables **persist across steps** just like a real session; on Windows (or with `--subprocess`) it runs each command independently. For the highest fidelity on POSIX — colored output and simple interactive TUIs — record with `--pty`, which attaches a real pseudo-terminal. `runscribe build` redacts secrets, drops navigation noise (`ls`, `pwd`, …), collapses immediately-repeated commands, and renders a Markdown runbook. Command steps are tagged with `<!-- runscribe: id=N -->` so `runscribe run` re-executes exactly those runnable steps — never prose or example-output blocks.
 
 ### Custom redaction rules
 
@@ -103,7 +105,7 @@ literals = ["project-bluebird", "10.0.0.42"]
 - **M1:** `record` + `build`. Per-command capture, secret redaction, Markdown output. ✅
 - **M2:** persistent-shell capture (cd/export/vars persist), user-extensible `.runscribe/redact.toml`, smarter noise filtering. ✅
 - **M3:** `runscribe run` — step-by-step execution with confirmations, `{{placeholders}}`, and halt-on-failure. ✅
-- **M4:** HTML export, standalone `.exe`/binary (no Python needed), and full interactive-TUI (PTY) capture including native Windows. *(in progress)*
+- **M4:** HTML export ✅, standalone binaries for Linux/macOS/Windows ✅, and PTY capture on POSIX (`--pty`) ✅. Native-Windows PTY (ConPTY) is the remaining follow-up.
 
 ## Security & limits
 
