@@ -43,6 +43,10 @@ Issues = "https://github.com/hamzamansoorch/runscribe/issues"
 [tool.hatch.build.targets.wheel]
 packages = ["src/runscribe"]
 
+[tool.hatch.build.targets.sdist]
+# Keep the published package lean — the demo GIF lives on GitHub only.
+exclude = ["/assets"]
+
 [tool.ruff]
 line-length = 100
 target-version = "py310"

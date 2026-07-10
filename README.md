@@ -2,6 +2,10 @@
 
 **Turn what you just did in the terminal into a clean, re-runnable runbook — offline, no AI, your history never leaves your machine.**
 
+<p align="center">
+  <img src="assets/runscribe-demo.gif" alt="runscribe demo: record a terminal session, build a runbook with secrets redacted, replay it step by step, and export to HTML" width="760">
+</p>
+
 Every team has tribal knowledge stuck in one person's head: how to deploy, how to restore a backup, how to rotate a key. Writing it down is tedious and it goes stale the moment the commands change. `runscribe` captures a real session as you work and mechanically turns it into a plain-Markdown SOP you can edit, share, and re-run.
 
 - 🔒 **100% local.** No account, no network, no telemetry. Nothing is ever uploaded — not to a server, not to an LLM.
